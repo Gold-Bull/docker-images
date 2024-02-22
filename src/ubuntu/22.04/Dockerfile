@@ -10,8 +10,8 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && chown -R _apt:root /tmp/libunwind \
     && chmod -R 0755 /tmp/libunwind \
     && cd /tmp/libunwind \
-    && apt-get source libunwind8 \
     && apt-get build-dep -y libunwind8 \
+    && apt-get source --compile libunwind8 \
     && ls -l /tmp/libunwind \
     &&  dpkg-buildpackage -rfakeroot -uc -b \
     && ls -l /tmp/libunwind
