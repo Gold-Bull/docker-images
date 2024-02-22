@@ -12,8 +12,6 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && cd /tmp/libunwind \
     && apt-get build-dep -y libunwind8 \
     && apt-get source --compile libunwind8 \
-    && ls -l /tmp/libunwind \
-    &&  dpkg-buildpackage -rfakeroot -uc -b \
     && ls -l /tmp/libunwind
 
 # Install dependencies https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu#dependencies
