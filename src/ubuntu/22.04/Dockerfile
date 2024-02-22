@@ -10,7 +10,7 @@ RUN cat /etc/apt/sources.list \
     && chmod -R 0755 /tmp/libunwind \
     && cd /tmp/libunwind \
     && apt-get source libunwind8 \
-    && apt-get build-dep libunwind8 \
+    && apt-get build-dep -y libunwind8 \
     && ls -l /tmp/libunwind \
     &&  dpkg-buildpackage -rfakeroot -uc -b \
     && ls -l /tmp/libunwind
