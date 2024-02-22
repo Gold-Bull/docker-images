@@ -14,7 +14,7 @@ env:
 
 jobs:
   build-and-push:
-    name: ${{ github.ref == 'refs/heads/main' && 'Build and push Docker image' || 'Build Docker image' }}
+    name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu) || format('Build Docker image ({0})', matrix.ubuntu) }}
 
     runs-on: ubuntu-latest
 

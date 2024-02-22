@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-# Install dependencies
+# Install dependencies https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu#dependencies
 RUN apt-get update && apt-get install -y \
     libc6 \
     libgcc-s1 \
