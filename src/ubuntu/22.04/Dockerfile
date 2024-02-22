@@ -1,13 +1,15 @@
 FROM ubuntu:22.04
 
 RUN cat /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y dpkg dpkg-cross dpkg-dev \
     && sed -i.bak "s/# deb-src/deb-src/g" /etc/apt/sources.list \
     && cat /etc/apt/sources.list \
     && mkdir -p /tmp/libunwind \
     && chown -R _apt:root /tmp/libunwind \
     && chmod -R 0755 /tmp/libunwind \
     && cd /tmp/libunwind \
-    && apt-get update && apt-get source libunwind8 \
+    && apt-get source libunwind8 \
     && apt-get build-dep libunwind8 \
     && ls -l /tmp/libunwind \
     &&  dpkg-buildpackage -rfakeroot -uc -b \
