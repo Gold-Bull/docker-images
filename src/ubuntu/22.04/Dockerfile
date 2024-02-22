@@ -6,6 +6,7 @@ RUN cat /etc/apt/sources.list \
     && mkdir -p /tmp/libunwind \
     && cd /tmp/libunwind \
     && apt-get update && apt-get source libunwind8 \
+    && chmod -R 0744 /tmp/libunwind \
     && apt-get build-dep libunwind8 \
     && ls -l /tmp/libunwind \
     &&  dpkg-buildpackage -rfakeroot -uc -b \
