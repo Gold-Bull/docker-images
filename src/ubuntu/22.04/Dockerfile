@@ -4,9 +4,11 @@ RUN cat /etc/apt/sources.list \
     && sed -i.bak "s/# deb-src/deb-src/g" /etc/apt/sources.list \
     && cat /etc/apt/sources.list \
     && mkdir -p /tmp/libunwind \
+    && chmod -R 0755 /tmp/libunwind \
     && cd /tmp/libunwind \
     && apt-get update && apt-get source libunwind8 \
-    && chmod -R 0744 /tmp/libunwind \
+    && chown -Rv _apt:root /var/cache/apt/archives/partial/ \
+    && chmod -Rv 700 /var/cache/apt/archives/partial/ \
     && apt-get build-dep libunwind8 \
     && ls -l /tmp/libunwind \
     &&  dpkg-buildpackage -rfakeroot -uc -b \
