@@ -1,9 +1,9 @@
 FROM ubuntu:22.04
 
 RUN cat /etc/apt/sources.list \
+    && sed -i.bak "s/# deb-src/deb-src/g" /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y dpkg dpkg-cross dpkg-dev \
-    && sed -i.bak "s/# deb-src/deb-src/g" /etc/apt/sources.list \
     && cat /etc/apt/sources.list \
     && mkdir -p /tmp/libunwind \
     && chown -R _apt:root /tmp/libunwind \
