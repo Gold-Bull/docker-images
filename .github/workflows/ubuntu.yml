@@ -18,6 +18,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: ${{ github.ref == 'refs/heads/main' && 'write' || 'read' }}
+
     strategy:
       matrix:
         ubuntu:
