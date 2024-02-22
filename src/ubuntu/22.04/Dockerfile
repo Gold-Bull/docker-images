@@ -1,5 +1,13 @@
 FROM ubuntu:22.04
 
+RUN mkdir -p /tmp/libunwind \
+    && cd /tmp/libunwind \
+    && apt-get update && apt-get source libunwind8 \
+    && apt-get build-dep libunwind8 \
+    && ls -l /tmp/libunwind \
+    &&  dpkg-buildpackage -rfakeroot -uc -b \
+    && ls -l /tmp/libunwind
+
 # Install dependencies https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu#dependencies
 RUN apt-get update && apt-get install -y \
     libc6 \
