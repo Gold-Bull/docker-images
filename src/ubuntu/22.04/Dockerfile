@@ -1,6 +1,8 @@
 FROM ubuntu:22.04
 
 RUN cat /etc/apt/sources.list \
+    && sed -i.bak "s/# deb-src/deb-src/g" /etc/apt/sources.list \
+    && cat /etc/apt/sources.list \
     && mkdir -p /tmp/libunwind \
     && cd /tmp/libunwind \
     && apt-get update && apt-get source libunwind8 \
