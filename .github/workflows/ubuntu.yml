@@ -13,7 +13,9 @@ env:
   PLATFORMS_TO_BUILD: linux/amd64,linux/s390x
 
 jobs:
-  build:
+  build-and-push:
+    name: ${{ github.ref == 'refs/heads/main' && 'Build and push Docker image' || 'Build Docker image' }}
+
     runs-on: ubuntu-latest
 
     strategy:
@@ -61,7 +63,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         platforms: ${{ env.PLATFORMS_TO_BUILD }}
-        context: "{{defaultContext}}:ubuntu/${{ env.UBUNTU_VERSION }}"
+        context: "{{defaultContext}}:src/ubuntu/${{ env.UBUNTU_VERSION }}"
         file: Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
         build-contexts: |
