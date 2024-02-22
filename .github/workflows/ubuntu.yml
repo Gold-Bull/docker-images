@@ -20,7 +20,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: ${{ github.ref == 'refs/heads/main' && 'write' || 'read' }}
+      packages: write
 
     strategy:
       matrix:
