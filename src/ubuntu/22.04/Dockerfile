@@ -1,6 +1,7 @@
 FROM ubuntu:22.04
 
-RUN mkdir -p /tmp/libunwind \
+RUN cat /etc/apt/sources.list \
+    && mkdir -p /tmp/libunwind \
     && cd /tmp/libunwind \
     && apt-get update && apt-get source libunwind8 \
     && apt-get build-dep libunwind8 \
