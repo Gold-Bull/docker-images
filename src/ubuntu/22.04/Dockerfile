@@ -19,7 +19,7 @@ set -ex
 apt-get update
 apt-get install -y libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 zlib1g libgdiplus
 export LOCAL_ARCH=`uname -m`
-if [ "$LOCAL_ARCH" != "s390x" ]; then
+if [ $LOCAL_ARCH != "s390x" ]; then
   apt-get install -y libunwind8
 fi
 EOT
