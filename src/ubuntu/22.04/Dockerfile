@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1 
 FROM --platform=$BUILDPLATFORM ubuntu:22.04 AS build
 
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+ARG TARGETARCH
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN <<EOT bash
@@ -25,6 +29,9 @@ EOT
 #----------------------------------------------------------------------------------------------------
 
 FROM ubuntu:22.04 AS final
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 ENV DEBIAN_FRONTEND=noninteractive
 
