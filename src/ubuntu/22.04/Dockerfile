@@ -8,7 +8,7 @@ ARG TARGETOS
 
 ENV DEBIAN_FRONTEND=noninteractive \
     NODEJS_VERSION=v14.21.3 \
-    PATH="${PATH}:/opt/nodejs/bin"
+    PATH="/opt/nodejs/bin:${PATH}"
 
 # Install dependencies https://learn.microsoft.com/en-us/dotnet/core/install/linux-ubuntu#dependencies
 RUN <<EOT bash
