@@ -18,7 +18,7 @@ chmod -R 0755 /tmp/libunwind
 cd /tmp/libunwind
 apt-get build-dep -y libunwind8
 if [ "$TARGETPLATFORM" != "$BUILDPLATFORM" ]; then
-  apt-get install -y g++-12-$TARGETARCH-linux-gnu qemu-user-static
+  apt-get install -y g++-12-$TARGETARCH-linux-gnu qemu-user-static liblzma-dev
   export CC=$TARGETARCH-linux-gnu-gcc-12
   export CXX=$TARGETARCH-linux-gnu-g++-12
 fi
