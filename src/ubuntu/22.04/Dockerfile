@@ -21,10 +21,14 @@ if [ "$TARGETPLATFORM" != "$BUILDPLATFORM" ]; then
   export CC=$TARGETARCH-linux-gnu-gcc-12
   export CXX=$TARGETARCH-linux-gnu-g++-12
   export BUILD=x86_64-linux-gnu
+  export CFLAGS="-Wall -Wextra"
+  apt-get build-dep -y libunwind8=1.3.2-2build2.1
+  apt-get source libunwind=1.3.2-2build2.1
+  cd /tmp/libunwind/libunwind-1.3.2
+  ./configure --build=$BUILD --host=$TARGETARCH-linux-gnu
+  make -j8
+  ls -l /tmp/libunwind/libunwind-1.3.2
 fi
-apt-get build-dep -y libunwind8
-apt-get source libunwind8
-ls -l /tmp/libunwind
 EOT
 
 #----------------------------------------------------------------------------------------------------
