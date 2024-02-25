@@ -1,6 +1,13 @@
 # syntax=docker/dockerfile:1 
 FROM ubuntu:22.04
 
+RUN <<EOT bash
+echo $BUILDPLATFORM
+echo $TARGETOS
+echo $TARGETARCH
+echo $TARGETVARIANT
+EOT
+
 #RUN export DEBIAN_FRONTEND=noninteractive \
 #    && sed -i.bak "s/# deb-src/deb-src/g" /etc/apt/sources.list \
 #    && apt-get update \
