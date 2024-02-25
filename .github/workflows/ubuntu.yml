@@ -64,7 +64,11 @@ jobs:
         labels: |
           org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} for .NET applications
           org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} with dependencies to run .NET applications
-          org.opencontainers.image.vendor=${{ github.owner }}
+          org.opencontainers.image.vendor=${{ github.repository_owner }}
+        annotations: |
+          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} for .NET applications
+          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} with dependencies to run .NET applications
+          org.opencontainers.image.vendor=${{ github.repository_owner }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -78,4 +82,5 @@ jobs:
           ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
         builder: ${{ steps.setup_buildx.outputs.name }}
