@@ -20,6 +20,7 @@ if [ "$TARGETPLATFORM" != "$BUILDPLATFORM" ]; then
   apt-get install -y g++-12-$TARGETARCH-linux-gnu qemu-user-static
   export CC=$TARGETARCH-linux-gnu-gcc-12
   export CXX=$TARGETARCH-linux-gnu-g++-12
+  export BUILD=x86_64-linux-gnu
 fi
 apt-get build-dep -y libunwind8
 apt-get source --compile libunwind8
