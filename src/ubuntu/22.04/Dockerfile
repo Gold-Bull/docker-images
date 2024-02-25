@@ -23,7 +23,7 @@ if [ "$TARGETPLATFORM" != "$BUILDPLATFORM" ]; then
   export BUILD=x86_64-linux-gnu
 fi
 apt-get build-dep -y libunwind8
-apt-get source --compile libunwind8
+apt-get source libunwind8
 ls -l /tmp/libunwind
 EOT
 
