@@ -34,7 +34,7 @@ jobs:
     
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: "gold-bull/dotnet-ubuntu-base"
+      IMAGE_NAME: "gold-bull/dotnet-runtime-base"
       UBUNTU_VERSION: ${{ matrix.ubuntu }}
     
     steps:
