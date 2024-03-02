@@ -29,6 +29,7 @@ jobs:
     strategy:
       matrix:
         ubuntu:
+        - 18.04
         - 22.04
         - 20.04
     
