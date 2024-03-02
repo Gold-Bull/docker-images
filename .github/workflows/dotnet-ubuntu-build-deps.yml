@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "DotNet - Ubuntu Runtime Base"
+    - "DotNet - Ubuntu Runtime Base"
     types:
-      - completed
+    - completed
     branches:
-      - main
+    - main
   push:
     branches:
     - main
