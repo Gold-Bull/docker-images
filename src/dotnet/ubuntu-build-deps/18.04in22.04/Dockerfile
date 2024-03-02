@@ -4,7 +4,7 @@ FROM ghcr.io/gold-bull/dotnet-runtime-base:ubuntu-22.04-latest
 ARG TARGETARCH
 ARG TARGETOS
 ARG NODEJS_VERSION=v14.21.3
-ARG BUILD_DEPS_SCRIPT=https://gist.githubusercontent.com/SaileshBellamkonda/d5342cfe19ee3ec46f1693851edfa46a/raw/dotnet-build-s390x-ubt-1804.sh
+ARG BUILD_DEPS_SCRIPT=https://gist.githubusercontent.com/SaileshBellamkonda/a641dc21d1722160b89e886cd18bab60/raw/dotnet-build-s390x-ubt-1804in2204.sh
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/opt/nodejs/bin:${PATH}"
