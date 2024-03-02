@@ -30,8 +30,8 @@ jobs:
       matrix:
         ubuntu:
         - 18.04
-        - 22.04
         - 20.04
+        - 22.04
     
     env:
       REGISTRY: ghcr.io
@@ -80,8 +80,6 @@ jobs:
         context: "{{defaultContext}}:src/dotnet/ubuntu-runtime-base/${{ env.UBUNTU_VERSION }}"
         file: Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
-        build-contexts: |
-          ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}

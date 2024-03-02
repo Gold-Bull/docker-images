@@ -39,8 +39,9 @@ jobs:
       matrix:
         ubuntu:
         - 18.04
-        - 22.04
+        - 18.04in22.04
         - 20.04
+        - 22.04
     
     env:
       REGISTRY: ghcr.io
@@ -92,8 +93,6 @@ jobs:
         push: ${{ github.ref == 'refs/heads/main' }}
         build-args: |-
           NODEJS_VERSION=${{ env.NODEJS_VERSION }}
-        build-contexts: |
-          ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
