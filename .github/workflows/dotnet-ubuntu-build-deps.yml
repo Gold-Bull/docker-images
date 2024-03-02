@@ -1,24 +1,33 @@
-name: Ubuntu
+name: DotNet - Ubuntu Build Deps
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "DotNet - Ubuntu Runtime Base"
+    types:
+      - completed
+    branches:
+      - main
   push:
     branches:
     - main
     - 'feature/*'
     paths:
-    - ".github/workflows/ubuntu.yml"
-    - "src/ubuntu/**"
+    - ".github/workflows/dotnet-ubuntu-build-deps.yml"
+    - "src/dotnet/ubuntu-build-deps/**"
   pull_request:
     branches:
     - main
 
 env:
-  PLATFORMS_TO_BUILD: linux/amd64,linux/s390x
+  NODEJS_VERSION: v14.21.3
 
 jobs:
   build-and-push:
     name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu) || format('Build Docker image ({0})', matrix.ubuntu) }}
+
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
     runs-on: ubuntu-latest
 
@@ -34,7 +43,7 @@ jobs:
     
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: "gold-bull/dotnet-runtime-base"
+      IMAGE_NAME: "gold-bull/dotnet-build-deps"
       UBUNTU_VERSION: ${{ matrix.ubuntu }}
     
     steps:
@@ -63,22 +72,25 @@ jobs:
           type=raw,enable=true,priority=201,prefix=ubuntu-${{ env.UBUNTU_VERSION }}-,suffix=,value=latest
           type=sha,enable=true,priority=100,prefix=ubuntu-${{ env.UBUNTU_VERSION }}-,suffix=,format=short
         labels: |
-          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} for .NET applications
-          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} with dependencies to run .NET applications
+          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} to build .NET from source code
+          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} to build .NET from source code
           org.opencontainers.image.vendor=${{ github.repository_owner }}
         annotations: |
-          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} for .NET applications
-          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} with dependencies to run .NET applications
+          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} to build .NET from source code
+          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} to build .NET from source code
           org.opencontainers.image.vendor=${{ github.repository_owner }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        platforms: ${{ env.PLATFORMS_TO_BUILD }}
+        allow: |
+          security.insecure
         provenance: false
-        context: "{{defaultContext}}:src/ubuntu/${{ env.UBUNTU_VERSION }}"
+        context: "{{defaultContext}}:src/dotnet/ubuntu-build-deps/${{ env.UBUNTU_VERSION }}"
         file: Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
+        build-args: |-
+          NODEJS_VERSION=${{ env.NODEJS_VERSION }}
         build-contexts: |
           ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
         tags: ${{ steps.meta.outputs.tags }}

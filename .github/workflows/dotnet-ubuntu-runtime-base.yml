@@ -1,0 +1,88 @@
+name: DotNet - Ubuntu Runtime Base
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    - 'feature/*'
+    paths:
+    - ".github/workflows/dotnet-ubuntu-runtime-base.yml"
+    - "src/dotnet/ubuntu-runtime-base/**"
+  pull_request:
+    branches:
+    - main
+
+env:
+  PLATFORMS_TO_BUILD: linux/amd64,linux/s390x
+
+jobs:
+  build-and-push:
+    name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu) || format('Build Docker image ({0})', matrix.ubuntu) }}
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        ubuntu:
+        - 18.04
+        - 22.04
+        - 20.04
+    
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: "gold-bull/dotnet-runtime-base"
+      UBUNTU_VERSION: ${{ matrix.ubuntu }}
+    
+    steps:
+    - id: qemu
+      name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - id: setup_buildx
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to the GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - id: meta
+      name: Extract metadata (tags, labels) for Docker
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,enable=true,priority=600,prefix=ubuntu-${{ env.UBUNTU_VERSION }}-,suffix=,event=tag
+          type=raw,enable=true,priority=201,prefix=ubuntu-${{ env.UBUNTU_VERSION }}-,suffix=,value=latest
+          type=sha,enable=true,priority=100,prefix=ubuntu-${{ env.UBUNTU_VERSION }}-,suffix=,format=short
+        labels: |
+          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} for .NET applications
+          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} with dependencies to run .NET applications
+          org.opencontainers.image.vendor=${{ github.repository_owner }}
+        annotations: |
+          org.opencontainers.image.title=Ubuntu ${{ env.UBUNTU_VERSION }} for .NET applications
+          org.opencontainers.image.description=Ubuntu ${{ env.UBUNTU_VERSION }} with dependencies to run .NET applications
+          org.opencontainers.image.vendor=${{ github.repository_owner }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        platforms: ${{ env.PLATFORMS_TO_BUILD }}
+        provenance: false
+        context: "{{defaultContext}}:src/dotnet/ubuntu-runtime-base/${{ env.UBUNTU_VERSION }}"
+        file: Dockerfile
+        push: ${{ github.ref == 'refs/heads/main' }}
+        build-contexts: |
+          ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
+        builder: ${{ steps.setup_buildx.outputs.name }}
