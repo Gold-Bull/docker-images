@@ -1,4 +1,4 @@
-name: Ubuntu
+name: DotNet - Ubuntu Runtime Base
 
 on:
   workflow_dispatch:
@@ -7,8 +7,8 @@ on:
     - main
     - 'feature/*'
     paths:
-    - ".github/workflows/ubuntu.yml"
-    - "src/ubuntu/**"
+    - ".github/workflows/dotnet-ubuntu-runtime-base.yml"
+    - "src/dotnet/ubuntu-runtime-base/**"
   pull_request:
     branches:
     - main
@@ -76,7 +76,7 @@ jobs:
       with:
         platforms: ${{ env.PLATFORMS_TO_BUILD }}
         provenance: false
-        context: "{{defaultContext}}:src/ubuntu/${{ env.UBUNTU_VERSION }}"
+        context: "{{defaultContext}}:src/dotnet/ubuntu-runtime-base/${{ env.UBUNTU_VERSION }}"
         file: Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
         build-contexts: |
