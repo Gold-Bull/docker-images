@@ -21,7 +21,7 @@ on:
     - main
 
 env:
-  NODEJS_VERSION: v14.21.3
+  NODEJS_VERSIONS: v14.21.3;v16.20.2;v18.20.2;v20.12.2
 
 jobs:
   build-and-push:
@@ -91,7 +91,7 @@ jobs:
         file: Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
         build-args: |-
-          NODEJS_VERSION=${{ env.NODEJS_VERSION }}
+          NODEJS_VERSIONS=${{ env.NODEJS_VERSIONS }}
         build-contexts: |
           ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
         tags: ${{ steps.meta.outputs.tags }}
