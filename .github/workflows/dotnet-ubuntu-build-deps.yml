@@ -22,7 +22,7 @@ on:
 
 jobs:
   build-and-push:
-    name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu) || format('Build Docker image ({0})', matrix.ubuntu) }}
+    name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu.release) || format('Build Docker image ({0})', matrix.ubuntu.release) }}
 
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
