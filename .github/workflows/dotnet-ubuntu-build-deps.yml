@@ -20,12 +20,9 @@ on:
     branches:
     - main
 
-env:
-  NODEJS_VERSION: v14.21.3
-
 jobs:
   build-and-push:
-    name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu) || format('Build Docker image ({0})', matrix.ubuntu) }}
+    name: ${{ github.ref == 'refs/heads/main' && format('Build and push Docker image ({0})', matrix.ubuntu.release) || format('Build Docker image ({0})', matrix.ubuntu.release) }}
 
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
 
@@ -38,14 +35,18 @@ jobs:
     strategy:
       matrix:
         ubuntu:
-        - 18.04
-        - 22.04
-        - 20.04
+        - release: 18.04
+          nodejs_versions: v14.21.3;v16.20.2
+        - release: 20.04
+          nodejs_versions: v14.21.3;v16.20.2;v18.20.2;v20.12.2
+        - release: 22.04
+          nodejs_versions: v14.21.3;v16.20.2;v18.20.2;v20.12.2
     
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: "gold-bull/dotnet-build-deps"
-      UBUNTU_VERSION: ${{ matrix.ubuntu }}
+      UBUNTU_VERSION: ${{ matrix.ubuntu.release }}
+      NODEJS_VERSIONS: ${{ matrix.ubuntu.nodejs_versions }}
     
     steps:
     - id: qemu
@@ -91,7 +92,7 @@ jobs:
         file: Dockerfile
         push: ${{ github.ref == 'refs/heads/main' }}
         build-args: |-
-          NODEJS_VERSION=${{ env.NODEJS_VERSION }}
+          NODEJS_VERSIONS=${{ env.NODEJS_VERSIONS }}
         build-contexts: |
           ubuntu=docker-image://ubuntu:${{ env.UBUNTU_VERSION }}
         tags: ${{ steps.meta.outputs.tags }}
