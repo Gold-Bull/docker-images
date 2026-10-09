@@ -1,0 +1,120 @@
+name: VyOS - Stream
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "VyOS Stream release (e.g. 2026.03, 1.5-stream-2025-Q2)"
+        type: string
+        required: true
+        default: "2026.03"
+      latest:
+        description: "Also tag the image as latest"
+        type: boolean
+        default: true
+  pull_request:
+    branches:
+    - main
+    paths:
+    - ".github/workflows/vyos-stream.yml"
+    - "src/vyos/stream/**"
+
+jobs:
+  build-test-push:
+    name: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && format('Build, test and push Docker image ({0})', inputs.release || '2026.03') || format('Build and test Docker image ({0})', inputs.release || '2026.03') }}
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: "gold-bull/vyos-stream"
+      VYOS_RELEASE: ${{ inputs.release || '2026.03' }}
+      PUSH: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
+
+    steps:
+    - id: setup_buildx
+      name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to the GitHub Container Registry
+      if: ${{ env.PUSH == 'true' }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - id: meta
+      name: Extract metadata (tags, labels) for Docker
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=raw,value=${{ env.VYOS_RELEASE }}
+          type=raw,value=latest,enable=${{ inputs.latest != false }}
+          type=sha,prefix=${{ env.VYOS_RELEASE }}-,format=short
+        labels: |
+          org.opencontainers.image.title=VyOS Stream ${{ env.VYOS_RELEASE }}
+          org.opencontainers.image.description=VyOS Stream ${{ env.VYOS_RELEASE }} root filesystem
+          org.opencontainers.image.vendor=${{ github.repository_owner }}
+        annotations: |
+          org.opencontainers.image.title=VyOS Stream ${{ env.VYOS_RELEASE }}
+          org.opencontainers.image.description=VyOS Stream ${{ env.VYOS_RELEASE }} root filesystem
+          org.opencontainers.image.vendor=${{ github.repository_owner }}
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: "{{defaultContext}}:src/vyos/stream"
+        file: Dockerfile
+        load: true
+        push: false
+        provenance: false
+        build-args: |-
+          VYOS_RELEASE=${{ env.VYOS_RELEASE }}
+        tags: vyos-stream:test
+        cache-from: type=gha,scope=vyos-${{ env.VYOS_RELEASE }}
+        cache-to: type=gha,mode=max,scope=vyos-${{ env.VYOS_RELEASE }}
+        builder: ${{ steps.setup_buildx.outputs.name }}
+
+    - name: Test - image contains the requested release
+      run: |
+        docker run --rm --entrypoint cat vyos-stream:test /usr/share/vyos/version.json | tee version.json
+        grep -F "${VYOS_RELEASE}" version.json
+
+    - name: Test - boot and show version
+      run: |
+        docker run -d --name vyos --privileged -v /lib/modules:/lib/modules vyos-stream:test /sbin/init
+        trap 'docker logs vyos || true; docker rm -f vyos || true' EXIT
+
+        for i in $(seq 1 36); do
+          if docker exec vyos systemctl is-active --quiet vyos-router; then
+            ready=1
+            break
+          fi
+          sleep 5
+        done
+        [ -n "${ready:-}" ] || { echo "vyos-router did not become active in time"; exit 1; }
+
+        docker exec vyos su - vyos -c "/opt/vyatta/bin/vyatta-op-cmd-wrapper show version" | tee show-version.txt
+        grep -F "${VYOS_RELEASE}" show-version.txt
+
+    - name: Push Docker image
+      if: ${{ env.PUSH == 'true' }}
+      uses: docker/build-push-action@v5
+      with:
+        context: "{{defaultContext}}:src/vyos/stream"
+        file: Dockerfile
+        push: true
+        provenance: false
+        build-args: |-
+          VYOS_RELEASE=${{ env.VYOS_RELEASE }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        annotations: ${{ steps.meta.outputs.annotations }}
+        cache-from: type=gha,scope=vyos-${{ env.VYOS_RELEASE }}
+        builder: ${{ steps.setup_buildx.outputs.name }}
