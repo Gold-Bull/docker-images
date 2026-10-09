@@ -25,6 +25,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    timeout-minutes: 60
+
     permissions:
       contents: read
       packages: write
@@ -32,10 +34,37 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: "gold-bull/vyos-stream"
+      # vyos/vyos-build commit providing scripts/iso-to-oci and scripts/check-oci-container
+      VYOS_BUILD_REF: f5a1e8334f772225d9e3ccdab45f6884cec28e59
       VYOS_RELEASE: ${{ inputs.release || '2026.03' }}
       PUSH: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Checkout vyos-build
+      uses: actions/checkout@v4
+      with:
+        repository: vyos/vyos-build
+        ref: ${{ env.VYOS_BUILD_REF }}
+        path: vyos-build
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y minisign xorriso squashfs-tools jq xz-utils python3-pexpect
+
+    - id: oci
+      name: Convert VyOS Stream ISO to OCI rootfs tarball
+      run: |
+        src/vyos/stream/build.sh "$VYOS_RELEASE" vyos-build src/vyos/stream
+        tarball=$(ls src/vyos/stream/vyos-*-oci-amd64.tar.xz)
+        echo "tarball=$(basename "$tarball")" >> "$GITHUB_OUTPUT"
+
+    - name: Test OCI image
+      run: python3 vyos-build/scripts/check-oci-container --image "src/vyos/stream/${{ steps.oci.outputs.tarball }}"
+
     - id: setup_buildx
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -66,55 +95,16 @@ jobs:
           org.opencontainers.image.description=VyOS Stream ${{ env.VYOS_RELEASE }} root filesystem
           org.opencontainers.image.vendor=${{ github.repository_owner }}
 
-    - name: Build Docker image
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: "{{defaultContext}}:src/vyos/stream"
-        file: Dockerfile
-        load: true
-        push: false
+        context: src/vyos/stream
+        file: src/vyos/stream/Dockerfile
+        push: ${{ env.PUSH == 'true' }}
         provenance: false
         build-args: |-
-          VYOS_RELEASE=${{ env.VYOS_RELEASE }}
-        tags: vyos-stream:test
-        cache-from: type=gha,scope=vyos-${{ env.VYOS_RELEASE }}
-        cache-to: type=gha,mode=max,scope=vyos-${{ env.VYOS_RELEASE }}
-        builder: ${{ steps.setup_buildx.outputs.name }}
-
-    - name: Test - image contains the requested release
-      run: |
-        docker run --rm --entrypoint cat vyos-stream:test /usr/share/vyos/version.json | tee version.json
-        grep -F "${VYOS_RELEASE}" version.json
-
-    - name: Test - boot and show version
-      run: |
-        docker run -d --name vyos --privileged -v /lib/modules:/lib/modules vyos-stream:test /sbin/init
-        trap 'docker logs vyos || true; docker rm -f vyos || true' EXIT
-
-        for i in $(seq 1 36); do
-          if docker exec vyos systemctl is-active --quiet vyos-router; then
-            ready=1
-            break
-          fi
-          sleep 5
-        done
-        [ -n "${ready:-}" ] || { echo "vyos-router did not become active in time"; exit 1; }
-
-        docker exec vyos su - vyos -c "/opt/vyatta/bin/vyatta-op-cmd-wrapper show version" | tee show-version.txt
-        grep -F "${VYOS_RELEASE}" show-version.txt
-
-    - name: Push Docker image
-      if: ${{ env.PUSH == 'true' }}
-      uses: docker/build-push-action@v5
-      with:
-        context: "{{defaultContext}}:src/vyos/stream"
-        file: Dockerfile
-        push: true
-        provenance: false
-        build-args: |-
-          VYOS_RELEASE=${{ env.VYOS_RELEASE }}
+          VYOS_TARBALL=${{ steps.oci.outputs.tarball }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
-        cache-from: type=gha,scope=vyos-${{ env.VYOS_RELEASE }}
         builder: ${{ steps.setup_buildx.outputs.name }}
